@@ -7,37 +7,37 @@
 # import numpy as np
 # import re
 from rich import print
-from collections import defaultdict
+from functools import cache
 
 # with open("./day04/example.txt") as f:
 with open("./day04/input.txt") as f:
     content = f.read().split("\n")
 
-
-winning_numbers_list = []
-card_numbers_list = []
 winning_numbers_dict = {}
 card_numbers_dict = {}
-cards_processed = defaultdict(lambda: 0)
+
 
 for line in content:
     card_id = int(line.split(":")[0].split()[1])
     numbers = line.split(":")[1]
-
     winning_numbers_dict[card_id] = [int(n) for n in numbers.split("|")[0].split()]
     card_numbers_dict[card_id] = [int(n) for n in numbers.split("|")[1].split()]
-    # tuple of card_id and list of numbers
-    card_numbers_list.append((card_id, [int(n) for n in numbers.split("|")[1].split()]))
 
-total_win = 0
-while card_numbers_list:
-    card_id, card_numbers = card_numbers_list.pop(0)
-    cards_processed[card_id] += 1
+
+@cache
+def get_won_cards(card_id):
+    total = 0
     winning_numbers = winning_numbers_dict[card_id]
-    count = len(set(winning_numbers) & set(card_numbers))
-    cards_to_add = [
-        (card_id + i, card_numbers_dict[card_id + i]) for i in range(1, count + 1)
-    ]
-    card_numbers_list.extend(cards_to_add)
+    card_numbers = card_numbers_dict[card_id]
+    overlap = len(set(winning_numbers) & set(card_numbers))
+    total += overlap
+    for i in range(overlap):
+        total += get_won_cards(card_id + 1 + i)
+    return total
 
-print(sum([v for k, v in cards_processed.items()]))
+
+total = 0
+for card_id in card_numbers_dict.keys():
+    total += get_won_cards(card_id)
+
+print(f"Part 2: {total}")
