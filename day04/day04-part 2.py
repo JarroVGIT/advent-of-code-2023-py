@@ -9,6 +9,7 @@
 from rich import print
 from functools import cache
 
+
 # with open("./day04/example.txt") as f:
 with open("./day04/input.txt") as f:
     content = f.read().split("\n")
@@ -38,6 +39,6 @@ def get_won_cards(card_id):
 
 total = 0
 for card_id in card_numbers_dict.keys():
-    total += get_won_cards(card_id)
+    total += 1 + get_won_cards(card_id)
 
 print(f"Part 2: {total}")
