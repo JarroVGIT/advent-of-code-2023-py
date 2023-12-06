@@ -29,3 +29,17 @@ for i in range(0, t + 1):
         possible_distances += 1
 
 print(possible_distances)
+
+## Neater, solved for quadratic equation
+import math
+
+t = 49877895
+d = 356137815021882
+
+# f(x) = (71530 - x) * x = 71530x - x^2 = -x^2 + 71530x - 940200
+a = -1
+b = t
+c = -d
+discriminant = b**2 - (4 * a * c)
+x1 = (-b + math.sqrt(discriminant)) / (2.0 * a)
+x2 = (-b - math.sqrt(discriminant)) / (2.0 * a)
