@@ -10,7 +10,7 @@ from rich import print
 from itertools import cycle
 from math import lcm
 
-#with open("./day08/example-2.txt") as f:
+# with open("./day08/example-2.txt") as f:
 with open("./day08/input.txt") as f:
     content = f.read().split("\n")
 
@@ -22,16 +22,17 @@ for line in content[2:]:
     node, l, r = re.findall(r"[0-9A-Z]{3}", line)
     nodes[node] = {"L": l, "R": r}
 
-start_nodes = [node for node in nodes if node[-1] == 'A']
+start_nodes = [node for node in nodes if node[-1] == "A"]
 
-steps_until_z = [] # For each starting node, how many steps until Z
+steps_until_z = []  # For each starting node, how many steps until Z
 for node in start_nodes:
     for idx, instruction in enumerate(cycle(leftright)):
         node = nodes[node][instruction]
-        if node[-1] == 'Z':
+        if node[-1] == "Z":
             steps_until_z.append(idx + 1)
             break
 
 # Answer is the lowest common multiple of all steps_until_z
-print(lcm(*steps_until_z))
 
+# UPDATE: this is actually technically not correct yet. The answer must be
+print(lcm(*steps_until_z))
