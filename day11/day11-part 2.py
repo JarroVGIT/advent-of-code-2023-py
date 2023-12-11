@@ -48,7 +48,9 @@ def get_empty_cols_and_rows(coord_a: complex, coord_b: complex, repeater=10) -> 
         row_range = range(int(coord_a.imag), int(coord_b.imag))
     empty_columns_between = [col for col in empty_cols if col in col_range]
     empty_rows_between = [row for row in empty_rows if row in row_range]
-    return (len(empty_columns_between) + len(empty_rows_between)) * repeater 
+    extra_rows = 0 if not empty_rows_between else ((len(empty_rows_between) * repeater) -1)
+    extra_cols = 0 if not empty_columns_between else (((len(empty_columns_between)) * repeater) -1)
+    return extra_rows + extra_cols
 
 
 # Distance is measured in manahttan distance, yay!
