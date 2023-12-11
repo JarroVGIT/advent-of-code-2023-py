@@ -9,8 +9,8 @@
 from rich import print
 from itertools import product
 
-with open("./day11/example.txt") as f:
-#with open("./day11/input.txt") as f:
+# with open("./day11/example.txt") as f:
+with open("./day11/input.txt") as f:
     content = f.read().split("\n")
 
 grid = []
@@ -37,7 +37,10 @@ for idx, col in enumerate(grid):
 # Transpose the grid back
 grid = list(map(list, zip(*grid)))
 
-def get_empty_cols_and_rows(coord_a: complex, coord_b: complex, repeater=10) -> int:
+
+def get_empty_cols_and_rows(
+    coord_a: complex, coord_b: complex, repeater=1000000
+) -> int:
     if coord_a.real > coord_b.real:
         col_range = range(int(coord_b.real), int(coord_a.real))
     else:
@@ -48,21 +51,38 @@ def get_empty_cols_and_rows(coord_a: complex, coord_b: complex, repeater=10) -> 
         row_range = range(int(coord_a.imag), int(coord_b.imag))
     empty_columns_between = [col for col in empty_cols if col in col_range]
     empty_rows_between = [row for row in empty_rows if row in row_range]
-    extra_rows = 0 if not empty_rows_between else ((len(empty_rows_between) * repeater) -1)
-    extra_cols = 0 if not empty_columns_between else (((len(empty_columns_between)) * repeater) -1)
+    extra_rows = (
+        0
+        if not empty_rows_between
+        else ((len(empty_rows_between) * repeater) - len(empty_rows_between))
+    )
+    extra_cols = (
+        0
+        if not empty_columns_between
+        else (((len(empty_columns_between)) * repeater) - len(empty_columns_between))
+    )
     return extra_rows + extra_cols
 
 
 # Distance is measured in manahttan distance, yay!
-# We can use complex numbers again. 
+# We can use complex numbers again.
 
-galaxies = [complex(x, y) for y, row in enumerate(grid) for x, col in enumerate(row) if col == "#"]
+galaxies = [
+    complex(x, y)
+    for y, row in enumerate(grid)
+    for x, col in enumerate(row)
+    if col == "#"
+]
 
 pair_distances = []
 while galaxies:
     galaxy = galaxies.pop()
     for other_galaxy in galaxies:
-        distance = abs(galaxy.real - other_galaxy.real) + abs(galaxy.imag - other_galaxy.imag) + get_empty_cols_and_rows(galaxy, other_galaxy)
+        distance = (
+            abs(galaxy.real - other_galaxy.real)
+            + abs(galaxy.imag - other_galaxy.imag)
+            + get_empty_cols_and_rows(galaxy, other_galaxy)
+        )
         pair_distances.append(distance)
 
 print("Part 2: ", sum(pair_distances))
