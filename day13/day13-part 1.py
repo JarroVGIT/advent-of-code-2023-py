@@ -9,7 +9,7 @@
 from rich import print
 
 with open("./day13/example.txt") as f:
-    # with open("./day13/input.txt") as f:
+#with open("./day13/input.txt") as f:
     content = f.read().split("\n\n")
 
 grids = []
@@ -20,41 +20,30 @@ for block in content:
 
     grids.append(grid)
 
-score = 0
-for grid in grids:
-    # Check for rows first:
+
+def overlapping_rows(grid):
     intermediate_score = 0
-    for i in range(len(grid)):
-        if (i+1<len(grid)) and  grid[i] == grid[i+1]:
+    for row_id in range(len(grid)):
+        if (row_id+1<len(grid)) and  grid[row_id] == grid[row_id+1]:
             # Check if rest of rows is mirrored as well:
-            if i < len(grid)/2:
+            if row_id < len(grid)//2:
                 # Ignore last rows
-                if grid[:i+1] == grid[i+1:(i*2)+1:-1]:
-                    intermediate_score += 100*(i+1)
+                if grid[ : row_id+1 ] == grid[ (row_id*2)+1 : row_id : -1 ]:
+                    intermediate_score += row_id+1
                     break
             else:
                 # Ignore first rows
-                if grid[i+1:] == grid[i-(len(grid)-1):i:-1]:
-                    intermediate_score += 100*(len(grid)-i)
+                if grid[ row_id+1 : ] == grid[ row_id : row_id-(len(grid)-row_id) + 1 : -1 ]:
+                    intermediate_score += row_id+1
                     break
-    # If not mirrored, check for columns:
-    if not intermediate_score:
-        # Transpose grid:
-        grid = list(map(list, zip(*grid)))
-        # First row is now first column.
-        for i in range(len(grid)):
-            if (i+1<len(grid)) and grid[i] == grid[i+1]:
-                # Check if rest of rows is mirrored as well:
-                if i < len(grid)/2:
-                    # Ignore last rows
-                    if grid[:i+1] == grid[i+1:i*2+1:-1]:
-                        intermediate_score += 1*(i+1)
-                        break
-                else:
-                    # Ignore first rows
-                    if grid[i+1:] == grid[i-(len(grid)-1):i:-1]:
-                        intermediate_score += 1*(len(grid)-i)
-                        break
-    score += intermediate_score
+    return intermediate_score
+
+score = 0
+for idx, grid in enumerate(grids):
+    s = overlapping_rows(grid) * 100
+    if not s:
+        transposed = list(map(list, zip(*grid)))
+        s = overlapping_rows(transposed)
+    score += s
 
 print(score)
