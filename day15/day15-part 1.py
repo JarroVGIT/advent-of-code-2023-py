@@ -8,6 +8,24 @@
 # import re
 from rich import print
 
-with open("./day15/example.txt") as f:
-    # with open("./day15/input.txt") as f:
+# with open("./day15/example.txt") as f:
+with open("./day15/input.txt") as f:
     content = f.read().split("\n")
+
+instructions = []
+for line in content:
+    for piece in line.split(","):
+        instructions.append(piece)
+
+print(instructions)
+
+hashes = []
+for string in instructions:
+    current = 0
+    for c in string:
+        current += ord(c)
+        current *= 17
+        current %= 256
+    hashes.append(current)
+
+print(sum(hashes))
