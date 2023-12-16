@@ -138,7 +138,9 @@ while i <= target:
         coordinates = roll(coordinates, direction)
     if not found and coordinates in past_results:
         cycle_length = i - past_results.index(coordinates)
+        print(f"Cycle found at {i} with cycle length {cycle_length}.")
         new_i = (target - i - 1) % cycle_length
+        print("Skipping to cycle", target-new_i)
         found = True
         i = target-new_i
     else:
