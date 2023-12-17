@@ -3,3 +3,4 @@ numpy
 rich
 ruff
 shapely
+dijkstar
