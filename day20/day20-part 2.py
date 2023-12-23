@@ -8,6 +8,7 @@
 # import re
 from rich import print
 from typing import Literal
+import math
 from collections import defaultdict, deque
 #with open("./day20/example.txt") as f:
 with open("./day20/input.txt") as f:
@@ -74,46 +75,26 @@ for id, module in modules.items():
 
 q = deque()
 button_presses = 0
-found = False
 rx_low_pulse = []
 
 # RX only comes from KH, which is conjunction with inputs 
 # pv, qh, xm and hz. All of them have to be 1 for kh to emit -1. 
-# LCM the cycle it takes for each of them to emit a 1.
+# LCM the cycle it takes for each of them to emit a 1 to kh. 
 
-first_low_pulse_button_count ={
-    'pv': 0,
-    'qh': 0,
-    'xm': 0,
-    'hz': 0
-}
+button_presses_till_1_to_kh = {'pv': 0, 'qh': 0, 'xm': 0, 'hz': 0}
 
 while True:
-    if all([x != 0 for x in first_low_pulse_button_count.values()]):
-        print(first_low_pulse_button_count)
-        break
     button_pulse = ('broadcaster', -1, 'button')
     button_presses += 1
     q.append(button_pulse)
-    last_send_pulse_to_kh = {'pv': 0, 'qh': 0, 'xm': 0, 'hz': 0}
     while q:
         module, pulse, sender = q.popleft()
+        if sender in button_presses_till_1_to_kh.keys() and module == 'kh' and pulse == 1:
+            button_presses_till_1_to_kh[sender] = button_presses
         if module in modules:
-            to_send = modules[module].receive_pulse(pulse, sender)
-            for send in to_send:
-                if send[2] in last_send_pulse_to_kh:
-                    last_send_pulse_to_kh[module] = send[1]
-                q.append(send)
-    if any([x == 1 for x in last_send_pulse_to_kh.values()]):
-        if last_send_pulse_to_kh['pv'] == 1 and first_low_pulse_button_count['pv'] == 0:
-            first_low_pulse_button_count['pv'] = button_presses
-        elif last_send_pulse_to_kh['qh'] == 1 and first_low_pulse_button_count['qh'] == 0:
-            first_low_pulse_button_count['qh'] = button_presses
-        elif last_send_pulse_to_kh['xm'] == 1 and first_low_pulse_button_count['xm'] == 0:
-            first_low_pulse_button_count['xm'] = button_presses
-        elif last_send_pulse_to_kh['hz'] == 1 and first_low_pulse_button_count['hz'] == 0:
-            first_low_pulse_button_count['hz'] = button_presses
-        else:
-            raise NotImplementedError
-
-print(button_presses)
+            send_to_modules = modules[module].receive_pulse(pulse, sender)
+            for send_to_module in send_to_modules:
+                q.append(send_to_module)
+    if all([x > 0 for x in button_presses_till_1_to_kh.values()]):
+        print(math.lcm(*[i for i in button_presses_till_1_to_kh.values()]))
+        break
