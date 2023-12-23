@@ -32,15 +32,6 @@ for tile in tiles.keys():
         if tile + direction in tiles:
             tiles[tile].add(tile + direction)
 
-# @cache
-# def get_neighbours(current_tile, steps_left):
-#     if steps_left == 1:
-#         return tiles[current_tile]
-#     else:
-#         next_tiles = []
-#         for neighbour in tiles[current_tile]:
-#             next_tiles.extend(get_neighbours(neighbour, steps_left - 1))
-#         return next_tiles
 
 def get_next_possible_steps(current_tiles: set[complex], steps_left: int):
     if steps_left == 0:

@@ -102,3 +102,14 @@ for i in [6, 10, 50, 100]:
     for c, grids in possible_tiles.items():
         count += len(grids)
     print(count)
+
+# Wrong line of thinking, the input is a diamond shape, there are straight lines of tiles 
+# from S in the middle. That means you can calculate the maximum amount of grids you will go through
+# it takes 65 steps to 'start' a new grid, after which it will take 131 steps (2x65+S) to start the next
+# etc. But, 65 steps creates 4 grids (n, e, w, s), and every 131 steps after will create 4 more than
+# before (expanding diamond shape). After 26501365 steps, this cycle (of adding new grids) happened 
+# 202300 times ((26501365-65) / 131). 
+# At some point all tiles in the first grid will be visited and that means that half of the tiles will be 
+# possible to reach (as a tile can only be reached in even or odd steps, but never both).
+# How many steps untill full coverage of grid 1? After 64, you have half of the inner diamond covered?
+# It will take another 65 steps to gover the outer diamond? Need pen and paper.
