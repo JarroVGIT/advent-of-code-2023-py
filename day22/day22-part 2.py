@@ -9,48 +9,41 @@
 from rich import print
 import itertools
 from functools import cache
-#with open("./day22/example.txt") as f:
+from collections import defaultdict
+#with open("./day22/example.txt") as f:#
 with open("./day22/input.txt") as f:
     content = f.read().split("\n")
 
-# Check to see it's all 1 line per brick.
-# for line in content:
-#     a,b = line.split("~")
-#     a1, a2, a3 = map(int, a.split(","))
-#     b1, b2, b3 = map(int, b.split(","))
-#     if not ((a1 == b1 and a2 == b2) or
-#             (a1 == b1 and a3 == b3) or
-#             (a2 == b2 and a3 == b3)):
-#         print(line)
-        
-
 # Create a dictionary with key = z, value = list of tuples (brick_id, xy)
-# create also a dictionary with all brick_ids and list of xy. Xy will never change, only z. 
-layers = {}
-bricks_xy = {}
-bricks_supported_by = {} # dict to keep track which brick is supporting what.
+layers = defaultdict(list)
+
+# create also a dictionary with all brick_ids and list of xy. xy will never change, only z. 
+bricks_xy = defaultdict(list)
+
+# Create a list of all vertical brick_ids
+vertical_bricks = []
+
+bricks_supported_by = defaultdict(list) # dict to keep track which brick is supported by which bricks.
+
 for brick_id, line in enumerate(content):
     start, end = line.split("~")
-    # Create xy tuples
     start_x, start_y, start_z = map(int, start.split(","))
     end_x, end_y, end_z = map(int, end.split(","))
+
     if start_z == end_z:
         # horizontal brick
-        if start_z not in layers:
-            layers[start_z] = []
         if start_x != end_x:
             # length in x direction
-            bricks_xy[brick_id] = [(x, start_y) for x in range(start_x, end_x + 1)]
+            bricks_xy[brick_id].extend([(x, start_y) for x in range(start_x, end_x + 1)])
             layers[start_z].extend([(brick_id, (x, start_y)) for x in range(start_x, end_x + 1)])
         else:
-            # length in y direction
-            bricks_xy[brick_id] = [(start_x, y) for y in range(start_y, end_y + 1)]
+            # length in y direction or 1x1 brick
+            bricks_xy[brick_id].extend([(start_x, y) for y in range(start_y, end_y + 1)])
             layers[start_z].extend([(brick_id, (start_x, y)) for y in range(start_y, end_y + 1)])
     else:
-        bricks_xy[brick_id] = [(start_x, start_y)]
+        bricks_xy[brick_id].extend([(start_x, start_y)])
+        vertical_bricks.append((brick_id, (start_x, start_y)))
         for z in range(start_z, end_z + 1):
-            if z not in layers:
-                layers[z] = []
             layers[z].extend([(brick_id, (start_x, start_y))])
 
 # Now we have a dictionary with all layers and a dictionary with all bricks and their xy coordinates
@@ -58,6 +51,8 @@ for brick_id, line in enumerate(content):
 for z in range(min(layers.keys()), max(layers.keys()) + 1):
     if z not in layers.keys():
         layers[z] = []
+
+layers = dict(sorted(layers.items()))
 
 # Now let's lower all bricks that are floating, starting from the bottom
 for z in range(1, len(layers.keys())+1):
@@ -68,7 +63,6 @@ for z in range(1, len(layers.keys())+1):
     for brick_id in bricks_current_layer:
         current_brick_coords = bricks_xy[brick_id]
         current_z_of_brick = z
-        bricks_supported_by[brick_id] = [] if brick_id not in bricks_supported_by else bricks_supported_by[brick_id]
         while True:
             if current_z_of_brick == 1:
                 break # Cannot go lower. Brick is on the floor.
@@ -93,21 +87,37 @@ for z in range(1, len(layers.keys())+1):
 
 # We have a dict where for each brick, it says who it is supported by. For brick id 1, check how often [1] is in 
 # suported by values, and then continue counting. Recursive function.
-
 @cache
-def get_falling_bricks(brick_ids: frozenset[int]):
+def get_falling_bricks(fallen_bricks: frozenset[int], total_v_bricks_fallen: frozenset[int], total_bricks_fallen: frozenset[int]):
     # Get all possible combinations of brick_ids that might be supportive of a brick. For example
     # if brick 1 and 2 are both supported by 0, and are both supporting 3 but only 1 is supporting 4, 
     # then when 0 falls, it takes away 1 and 2, but we need to look for [1], [2] and [1,2].
     combinations = []
-    for i in range(1, len(brick_ids)+1):
-        combinations.extend(list(map(set, itertools.combinations(brick_ids, i))))
+    bricks = fallen_bricks | total_v_bricks_fallen # union
+    for i in range(1, len(bricks)+1):
+        combinations.extend(list(map(set, itertools.combinations(bricks, i))))
     
-    bricks_supported_by_these_bricks = [k for k,v in bricks_supported_by.items() if set(v) in combinations]
+    bricks_supported_by_these_bricks = [k for k,v in bricks_supported_by.items() if set(v) in combinations and k not in total_bricks_fallen]
     if len(bricks_supported_by_these_bricks) == 0:
         return 0
     else:
-        return len(bricks_supported_by_these_bricks) + get_falling_bricks(frozenset(bricks_supported_by_these_bricks))
+        v_bricks = total_v_bricks_fallen
+        for brick in bricks_supported_by_these_bricks:
+            if brick in vertical_bricks:
+                v_bricks.add(brick)
+        
+        return (len(bricks_supported_by_these_bricks) + 
+                get_falling_bricks(frozenset(bricks_supported_by_these_bricks), 
+                                   frozenset(v_bricks), 
+                                   total_bricks_fallen | frozenset(bricks_supported_by_these_bricks)))
 
+layers = dict(sorted(layers.items()))
+bricks_xy = dict(sorted(bricks_xy.items()))
 
-print(sum([get_falling_bricks(frozenset([brick_id])) for brick_id in bricks_xy.keys()]))
+count = 0
+for brick_id in bricks_xy.keys():
+    if brick_id in vertical_bricks:
+        count += (get_falling_bricks(frozenset([brick_id]), frozenset([brick_id]), frozenset()))
+    else:
+        count += (get_falling_bricks(frozenset([brick_id]), frozenset(), frozenset()))
+print(count)
